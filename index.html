@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Meal Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .sync-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.2);
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .sync-status.synced {
+            background: rgba(40, 167, 69, 0.3);
+        }
+
+        .sync-status.syncing {
+            background: rgba(255, 193, 7, 0.3);
+        }
+
+        .sync-status.error {
+            background: rgba(220, 53, 69, 0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 2px solid #e9ecef;
+        }
+
+        .calendar-section {
+            padding: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .add-meal-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .meals-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .meal-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .meal-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .meal-item h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .meal-item p {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .meal-item-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .meal-item-actions button {
+            padding: 5px 10px;
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .calendar-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .month-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .month-nav button {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.3s;
+        }
+
+        .month-nav button:hover {
+            background: #764ba2;
+        }
+
+        .current-month {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            padding: 10px;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .day-cell {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            min-height: 100px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .day-cell:hover {
+            border-color: #667eea;
+            transform: scale(1.02);
+        }
+
+        .day-cell.other-month {
+            opacity: 0.3;
+        }
+
+        .day-number {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .day-cell.today {
+            border-color: #764ba2;
+            background: #f0e6ff;
+        }
+
+        .meal-assigned {
+            background: #667eea;
+            color: white;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-top: 5px;
+            font-weight: 500;
+            word-wrap: break-word;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .meal-search {
+            margin-bottom: 20px;
+        }
+
+        .meal-search input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .meal-options {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .meal-option {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .meal-option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .meal-option h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
+
+        .random-btn {
+            background: #28a745;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+        }
+
+        .setup-notice {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .setup-notice h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .setup-notice p {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .setup-notice code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #d63384;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Family Meal Planner</h1>
+            <p>Plan your month with ease</p>
+            <div class="sync-status" id="syncStatus">⚙️ Checking connection...</div>
+        </div>
+
+        <div id="setupNotice" class="setup-notice" style="display: none;">
+            <h3>⚙️ Setup Required</h3>
+            <p>Please configure your Google Sheets connection in the code.</p>
+            <p>Look for <code>SCRIPT_URL</code> in the HTML file and follow the setup instructions.</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="section-title">📝 Add New Meal</div>
+                <div class="add-meal-form">
+                    <div class="form-group">
+                        <label>Meal Name</label>
+                        <input type="text" id="mealName" placeholder="e.g., Spaghetti Bolognese">
+                    </div>
+                    <div class="form-group">
+                        <label>Ingredients</label>
+                        <textarea id="mealIngredients" placeholder="e.g., Ground beef, pasta, tomato sauce, onions"></textarea>
+                    </div>
+                    <button class="btn" onclick="addMeal()" id="addMealBtn">Add Meal</button>
+                </div>
+
+                <div class="section-title">🍕 Your Meals</div>
+                <div class="meals-list" id="mealsList"></div>
+            </div>
+
+            <div class="calendar-section">
+                <div class="calendar-controls">
+                    <div class="month-nav">
+                        <button onclick="previousMonth()">‹</button>
+                        <div class="current-month" id="currentMonth"></div>
+                        <button onclick="nextMonth()">›</button>
+                    </div>
+                    <button class="btn" style="width: auto; padding: 12px 24px;" onclick="exportToPDF()">📄 Export to PDF</button>
+                </div>
+
+                <div class="calendar-grid" id="calendar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="mealModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Select a Meal</h3>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="meal-search">
+                <input type="text" id="mealSearch" placeholder="Search meals..." oninput="filterMeals()">
+            </div>
+
+            <div class="meal-options" id="mealOptions"></div>
+
+            <div class="modal-actions">
+                <button class="btn random-btn" onclick="assignRandomMeal()">🎲 Random Meal</button>
+                <button class="btn btn-danger" onclick="clearDayMeal()">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // ========================================
+        // GOOGLE SHEETS CONFIGURATION
+        // ========================================
+        // REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwG3s3kTUouxxKW4gOO8d2-O3truqS6PLFPjQegp1fHkSAYm8uX7p-h9bTO357QhuDAKg/exec';
+        
+        // Check if configured
+        const isConfigured = SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbwG3s3kTUouxxKW4gOO8d2-O3truqS6PLFPjQegp1fHkSAYm8uX7p-h9bTO357QhuDAKg/exec';
+        
+        if (!isConfigured) {
+            document.getElementById('setupNotice').style.display = 'block';
+        }
+
+        let meals = [];
+        let mealPlan = {};
+        let currentDate = new Date();
+        let selectedDay = null;
+        let isSyncing = false;
+
+        // Sync status indicator
+        function updateSyncStatus(status, message) {
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.className = 'sync-status ' + status;
+            statusEl.textContent = message;
+        }
+
+        // Load data from Google Sheets
+        async function loadDataFromSheet() {
+            if (!isConfigured) {
+                updateSyncStatus('error', '⚠️ Not configured');
+                return;
+            }
+
+            try {
+                updateSyncStatus('syncing', '🔄 Loading data...');
+                
+                const response = await fetch(SCRIPT_URL + '?action=getData');
+                const data = await response.json();
+                
+                if (data.success) {
+                    meals = data.meals || [];
+                    mealPlan = data.mealPlan || {};
+                    
+                    renderMealsList();
+                    renderCalendar();
+                    
+                    updateSyncStatus('synced', '✓ Synced');
+                } else {
+                    throw new Error(data.error || 'Failed to load data');
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                updateSyncStatus('error', '✗ Sync failed');
+            }
+        }
+
+        // Save data to Google Sheets
+        async function saveDataToSheet() {
+            if (!isConfigured) return;
+            
+            if (isSyncing) return; // Prevent multiple simultaneous saves
+            
+            try {
+                isSyncing = true;
+                updateSyncStatus('syncing', '🔄 Saving...');
+                
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Required for Google Apps Script
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'saveData',
+                        meals: meals,
+                        mealPlan: mealPlan
+                    })
+                });
+                
+                // Note: no-cors mode means we can't read the response,
+                // but we assume success if no error is thrown
+                updateSyncStatus('synced', '✓ Synced');
+                
+            } catch (error) {
+                console.error('Error saving data:', error);
+                updateSyncStatus('error', '✗ Save failed');
+            } finally {
+                isSyncing = false;
+            }
+        }
+
+        function addMeal() {
+            const name = document.getElementById('mealName').value.trim();
+            const ingredients = document.getElementById('mealIngredients').value.trim();
+
+            if (!name) {
+                alert('Please enter a meal name');
+                return;
+            }
+
+            meals.push({
+                id: Date.now(),
+                name: name,
+                ingredients: ingredients
+            });
+
+            saveDataToSheet();
+            renderMealsList();
+
+            document.getElementById('mealName').value = '';
+            document.getElementById('mealIngredients').value = '';
+        }
+
+        function deleteMeal(id) {
+            if (confirm('Are you sure you want to delete this meal?')) {
+                meals = meals.filter(m => m.id !== id);
+                
+                // Remove from meal plan
+                Object.keys(mealPlan).forEach(date => {
+                    if (mealPlan[date].id === id) {
+                        delete mealPlan[date];
+                    }
+                });
+
+                saveDataToSheet();
+                renderMealsList();
+                renderCalendar();
+            }
+        }
+
+        function renderMealsList() {
+            const list = document.getElementById('mealsList');
+            
+            if (meals.length === 0) {
+                list.innerHTML = '<div class="empty-state"><p>No meals yet. Add your first meal!</p></div>';
+                return;
+            }
+
+            list.innerHTML = meals.map(meal => `
+                <div class="meal-item">
+                    <h4>${meal.name}</h4>
+                    <p>${meal.ingredients || 'No ingredients listed'}</p>
+                    <div class="meal-item-actions">
+                        <button class="btn btn-danger" onclick="deleteMeal(${meal.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                calendar.appendChild(header);
+            });
+
+            // Previous month days
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+                const cell = createDayCell(prevMonthLastDay - i, true);
+                calendar.appendChild(cell);
+            }
+
+            // Current month days
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = createDayCell(day, false);
+                
+                const cellDate = new Date(year, month, day);
+                if (cellDate.toDateString() === today.toDateString()) {
+                    cell.classList.add('today');
+                }
+
+                calendar.appendChild(cell);
+            }
+
+            // Next month days
+            const remainingCells = 42 - (startingDayOfWeek + daysInMonth);
+            for (let day = 1; day <= remainingCells; day++) {
+                const cell = createDayCell(day, true);
+                calendar.appendChild(cell);
+            }
+        }
+
+        function createDayCell(day, otherMonth) {
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            if (otherMonth) cell.classList.add('other-month');
+
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = day;
+            cell.appendChild(dayNumber);
+
+            if (!otherMonth) {
+                const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`;
+                const assignedMeal = mealPlan[dateKey];
+
+                if (assignedMeal) {
+                    const mealDiv = document.createElement('div');
+                    mealDiv.className = 'meal-assigned';
+                    mealDiv.textContent = assignedMeal.name;
+                    cell.appendChild(mealDiv);
+                }
+
+                cell.onclick = () => openMealModal(day);
+            }
+
+            return cell;
+        }
+
+        function openMealModal(day) {
+            selectedDay = day;
+            const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${day}`;
+            const assignedMeal = mealPlan[dateKey];
+
+            document.getElementById('modalTitle').textContent = 
+                `Select a Meal for ${currentDate.toLocaleString('default', { month: 'long' })} ${day}`;
+            
+            document.getElementById('mealSearch').value = '';
+            renderMealOptions();
+            document.getElementById('mealModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('mealModal').classList.remove('active');
+            selectedDay = null;
+        }
+
+        function renderMealOptions(searchTerm = '') {
+            const container = document.getElementById('mealOptions');
+            
+            const filteredMeals = meals.filter(meal => 
+                meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (meal.ingredients && meal.ingredients.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+
+            if (filteredMeals.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No meals found</p></div>';
+                return;
+            }
+
+            container.innerHTML = filteredMeals.map(meal => `
+                <div class="meal-option" onclick="assignMealToDay(${meal.id})">
+                    <h4>${meal.name}</h4>
+                    <p>${meal.ingredients || 'No ingredients listed'}</p>
+                </div>
+            `).join('');
+        }
+
+        function filterMeals() {
+            const searchTerm = document.getElementById('mealSearch').value;
+            renderMealOptions(searchTerm);
+        }
+
+        function assignMealToDay(mealId) {
+            const meal = meals.find(m => m.id === mealId);
+            if (!meal) return;
+
+            const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${selectedDay}`;
+            mealPlan[dateKey] = meal;
+            
+            saveDataToSheet();
+            renderCalendar();
+            closeModal();
+        }
+
+        function assignRandomMeal() {
+            if (meals.length === 0) {
+                alert('Please add some meals first!');
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * meals.length);
+            const randomMeal = meals[randomIndex];
+            
+            assignMealToDay(randomMeal.id);
+        }
+
+        function clearDayMeal() {
+            const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}-${selectedDay}`;
+            delete mealPlan[dateKey];
+            
+            saveDataToSheet();
+            renderCalendar();
+            closeModal();
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            // Title
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text(`Meal Plan - ${monthNames[month]} ${year}`, 105, 20, { align: 'center' });
+            
+            // Get all days with meals for this month
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const mealsThisMonth = [];
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = `${year}-${month}-${day}`;
+                const assignedMeal = mealPlan[dateKey];
+                
+                if (assignedMeal) {
+                    const date = new Date(year, month, day);
+                    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                    mealsThisMonth.push({
+                        day: day,
+                        dayName: dayName,
+                        meal: assignedMeal
+                    });
+                }
+            }
+            
+            if (mealsThisMonth.length === 0) {
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.text('No meals planned for this month.', 105, 40, { align: 'center' });
+            } else {
+                let yPosition = 35;
+                
+                mealsThisMonth.forEach((item, index) => {
+                    // Check if we need a new page
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    
+                    // Date header
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`${item.dayName}, ${monthNames[month]} ${item.day}`, 20, yPosition);
+                    yPosition += 7;
+                    
+                    // Meal name
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`Meal: ${item.meal.name}`, 25, yPosition);
+                    yPosition += 7;
+                    
+                    // Ingredients
+                    if (item.meal.ingredients) {
+                        doc.setFont(undefined, 'normal');
+                        doc.text('Ingredients:', 25, yPosition);
+                        yPosition += 6;
+                        
+                        const ingredientsLines = doc.splitTextToSize(item.meal.ingredients, 160);
+                        ingredientsLines.forEach(line => {
+                            doc.text(line, 30, yPosition);
+                            yPosition += 5;
+                        });
+                    }
+                    
+                    yPosition += 8; // Space between entries
+                });
+            }
+            
+            // Footer
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'italic');
+            doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 285, { align: 'center' });
+            
+            // Save the PDF
+            doc.save(`meal-plan-${monthNames[month]}-${year}.pdf`);
+        }
+
+        // Auto-refresh data every 10 seconds to stay in sync
+        setInterval(() => {
+            if (isConfigured && !isSyncing) {
+                loadDataFromSheet();
+            }
+        }, 10000);
+
+        // Initialize
+        if (isConfigured) {
+            loadDataFromSheet();
+        } else {
+            renderMealsList();
+            renderCalendar();
+        }
+    </script>
+</body>
+</html>
