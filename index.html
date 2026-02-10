@@ -77,6 +77,100 @@
             padding: 30px;
         }
 
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                border-right: none;
+                border-bottom: 2px solid #e9ecef;
+                padding: 20px;
+            }
+
+            .calendar-section {
+                padding: 20px;
+            }
+
+            .calendar-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .calendar-controls .btn {
+                width: 100%;
+            }
+
+            .current-month {
+                font-size: 1.2em;
+                min-width: auto;
+            }
+
+            .day-cell {
+                min-height: 80px;
+                padding: 5px;
+            }
+
+            .day-number {
+                font-size: 14px;
+            }
+
+            .meal-assigned {
+                font-size: 10px;
+                padding: 3px;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.2em;
+            }
+
+            .add-meal-form {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .calendar-grid {
+                gap: 5px;
+            }
+
+            .day-cell {
+                min-height: 70px;
+                padding: 4px;
+            }
+
+            .day-header {
+                font-size: 12px;
+                padding: 5px;
+            }
+
+            .meal-assigned {
+                font-size: 9px;
+            }
+        }
+
         .section-title {
             font-size: 1.5em;
             margin-bottom: 20px;
